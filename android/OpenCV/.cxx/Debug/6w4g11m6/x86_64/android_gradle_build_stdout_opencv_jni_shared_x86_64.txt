@@ -1,0 +1,2 @@
+ninja: Entering directory `/Users/keigorou/AndroidStudioProjects/nurie_3/android/opencv/.cxx/Debug/6w4g11m6/x86_64'
+ninja: no work to do.

@@ -1,0 +1,37 @@
+{
+  "buildFiles": [
+    "/Users/keigorou/AndroidStudioProjects/nurie_3/android/OpenCV/libcxx_helper/CMakeLists.txt"
+  ],
+  "cleanCommandsComponents": [
+    [
+      "/Users/keigorou/Library/Android/sdk/cmake/3.18.1/bin/ninja",
+      "-C",
+      "/Users/keigorou/AndroidStudioProjects/nurie_3/android/OpenCV/.cxx/Debug/1ut391f4/x86",
+      "clean"
+    ]
+  ],
+  "buildTargetsCommandComponents": [
+    "/Users/keigorou/Library/Android/sdk/cmake/3.18.1/bin/ninja",
+    "-C",
+    "/Users/keigorou/AndroidStudioProjects/nurie_3/android/OpenCV/.cxx/Debug/1ut391f4/x86",
+    "{LIST_OF_TARGETS_TO_BUILD}"
+  ],
+  "libraries": {
+    "opencv_jni_shared::@6890427a1f51a3e7e1df": {
+      "toolchain": "toolchain",
+      "abi": "x86",
+      "artifactName": "opencv_jni_shared",
+      "output": "/Users/keigorou/AndroidStudioProjects/nurie_3/android/OpenCV/.cxx/Debug/1ut391f4/x86/libopencv_jni_shared.a"
+    }
+  },
+  "toolchains": {
+    "toolchain": {
+      "cCompilerExecutable": "/Users/keigorou/Library/Android/sdk/ndk/21.4.7075529/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang",
+      "cppCompilerExecutable": "/Users/keigorou/Library/Android/sdk/ndk/21.4.7075529/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++"
+    }
+  },
+  "cFileExtensions": [],
+  "cppFileExtensions": [
+    "cpp"
+  ]
+}

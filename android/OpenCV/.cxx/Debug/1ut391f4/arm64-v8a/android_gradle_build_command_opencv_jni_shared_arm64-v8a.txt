@@ -1,0 +1,7 @@
+Executable : /Users/keigorou/Library/Android/sdk/cmake/3.18.1/bin/ninja
+arguments : 
+-C
+/Users/keigorou/AndroidStudioProjects/nurie_3/android/OpenCV/.cxx/Debug/1ut391f4/arm64-v8a
+opencv_jni_shared
+jvmArgs : 
+
