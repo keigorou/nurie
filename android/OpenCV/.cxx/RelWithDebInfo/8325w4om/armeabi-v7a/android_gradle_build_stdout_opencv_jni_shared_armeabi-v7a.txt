@@ -1,0 +1,2 @@
+ninja: Entering directory `/Users/keigorou/AndroidStudioProjects/nurie_3/android/OpenCV/.cxx/RelWithDebInfo/8325w4om/armeabi-v7a'
+ninja: no work to do.

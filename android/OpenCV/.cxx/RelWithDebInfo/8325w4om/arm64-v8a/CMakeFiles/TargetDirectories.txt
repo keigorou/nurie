@@ -1,0 +1,3 @@
+/Users/keigorou/AndroidStudioProjects/nurie_3/android/OpenCV/.cxx/RelWithDebInfo/8325w4om/arm64-v8a/CMakeFiles/rebuild_cache.dir
+/Users/keigorou/AndroidStudioProjects/nurie_3/android/OpenCV/.cxx/RelWithDebInfo/8325w4om/arm64-v8a/CMakeFiles/edit_cache.dir
+/Users/keigorou/AndroidStudioProjects/nurie_3/android/OpenCV/.cxx/RelWithDebInfo/8325w4om/arm64-v8a/CMakeFiles/opencv_jni_shared.dir
