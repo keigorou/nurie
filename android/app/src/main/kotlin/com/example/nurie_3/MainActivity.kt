@@ -22,6 +22,7 @@ import org.opencv.core.Mat
 import org.opencv.core.Core
 import org.opencv.core.Size
 import org.opencv.imgproc.Imgproc
+import org.opencv.photo.Photo
 import java.io.ByteArrayOutputStream
 
 
@@ -46,9 +47,10 @@ class MainActivity: FlutterActivity() {
 
             when (call.method) {
                 "image2NurieKernelSize5" -> image2Nurie(bitmapImgSource, 5.0)
-                "image2NurieKernelSize3" -> image2Nurie(bitmapImgSource, 3.0)
+                "image2NurieKernelSize10" -> image2Nurie(bitmapImgSource, 10.0)
+                "image2NurieKernelSize15" -> image2Nurie(bitmapImgSource, 15.0)
                 "image2Dilate" -> image2Dilate(bitmapImgSource)
-                "noiseRemoval" -> noiseRemoval(bitmapImgSource)
+                "noiseRemoval" -> noiseRemoval(bitmapImgSource) //処理に時間がかかる
                 "image2Threshold" -> image2Threshold(bitmapImgSource)
             }
 
@@ -79,6 +81,7 @@ class MainActivity: FlutterActivity() {
         Utils.matToBitmap(matResult, bitmapImgSource)
     }
 
+
     private fun image2Dilate(bitmapImgSource: Bitmap) {
         val matSource = Mat()
         Utils.bitmapToMat(bitmapImgSource, matSource)
@@ -101,8 +104,10 @@ class MainActivity: FlutterActivity() {
         Utils.bitmapToMat(bitmapImgSource, matSource)
 
         val matResult = Mat()
-        val kernel = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, Size(3.0, 3.0))
-        Imgproc.morphologyEx(matSource,matResult,Imgproc.MORPH_OPEN,kernel)
+        //val kernel = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, Size(1.0, 1.0))
+        //Imgproc.morphologyEx(matSource,matResult, Imgproc.MORPH_OPEN, kernel)
+
+        Photo.fastNlMeansDenoisingColored(matSource, matResult, 5.toFloat())
 
         Utils.matToBitmap(matResult, bitmapImgSource)
     }

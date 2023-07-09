@@ -1,6 +1,7 @@
 import 'package:device_preview/device_preview.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:nurie_3/constants.dart';
 
 import 'home_page.dart';
 
@@ -23,6 +24,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
+        fontFamily: mainFont,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
       home: const HomePage(),

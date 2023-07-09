@@ -2,15 +2,15 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:nurie_3/constants.dart';
-import 'package:nurie_3/select_image_widget.dart';
-import 'package:nurie_3/image_file_controller.dart';
+import 'package:nurie_3/line_thickness_button.dart';
+import 'package:nurie_3/default_image.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:image_gallery_saver/image_gallery_saver.dart';
 import 'package:nurie_3/image_pick_button.dart';
 import 'package:nurie_3/screen_pod.dart';
+import 'package:path_provider/path_provider.dart';
 
-import 'button.dart';
+import 'save_or_convert.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -22,8 +22,12 @@ class HomePage extends StatefulWidget {
 class HomePageState extends State<HomePage> with TickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _animation;
+  bool isCamera = false;
+  bool nurieCompleted = false;
+  bool isProccessing = false;
+  bool isLineTicknessChanging = false;
   File? _image;
-  Uint8List? _imageBytes, _nurieImageBytes, salida;
+  Uint8List? _originalImageBytes, _nurieImageBytes;
 
   final picker = ImagePicker();
 
@@ -45,33 +49,58 @@ class HomePageState extends State<HomePage> with TickerProviderStateMixin {
 
   _getImageFromDevice(ImageSource source) async {
     final pickedFile = await picker.pickImage(source: source);
-    _image = File(pickedFile!.path);
-    _imageBytes = await _image!.readAsBytes();
+    if (pickedFile == null) return;
+
+    _image = File(pickedFile.path);
+    _originalImageBytes = await _image!.readAsBytes();
+
+    // FadeAnimationをリセット
     _controller.reset();
 
+    // カメラで撮影した画像だと変換後に回転してしまうので、
+    // isCameraによってRotatedBoxで回転させる
+    isCamera = source == ImageSource.camera ? true : false;
+
     setState(() {
+      nurieCompleted = false;
       _nurieImageBytes = null;
-      _imageBytes;
+      _originalImageBytes;
     });
   }
 
-  _imageConvert(String methodName) async {
-    final path = await ImageFileController.localPath;
-    final imagePath = '$path/temp.jpeg';
-    File tempFile = File(imagePath);
-    var savedFile = await tempFile.writeAsBytes(_imageBytes!);
-    _nurieImageBytes =
-        await nurieChannel.invokeMethod(methodName, savedFile.path);
+  _imageConvert(String methodName, Uint8List imageBytes) async {
+    isProccessing = true;
+    final directory = await getTemporaryDirectory();
+    final tempImagePath = '${directory.path}/temp.jpeg';
+    File tempFile = File(tempImagePath);
+    var imageFile = await tempFile.writeAsBytes(imageBytes);
+    try {
+      _nurieImageBytes =
+          await nurieChannel.invokeMethod(methodName, imageFile.path);
+    } catch (e) {
+      throw 'error';
+    }
 
     setState(() {
       _nurieImageBytes;
+    });
+
+    // ぬりえにした後FadeAnimationが終わってから、保存ボタンを活性化
+    if (imageBytes == _originalImageBytes && !isLineTicknessChanging) {
+      await Future.delayed(const Duration(milliseconds: 2000));
+    }
+
+    setState(() {
+      nurieCompleted = true;
+      isProccessing = false;
+      isLineTicknessChanging = false;
     });
   }
 
   @override
   Widget build(BuildContext context) {
     final screen = ScreenRef(context).watch(screenProvider);
-    // final sizeClass = screen.sizeClass;
+    final sizeClass = screen.sizeClass;
     final size = MediaQuery.of(context).size;
     return Scaffold(
       body: Container(
@@ -82,64 +111,89 @@ class HomePageState extends State<HomePage> with TickerProviderStateMixin {
                 image: AssetImage('assets/background.jpeg'), fit: BoxFit.fill)),
         child: Padding(
           padding: const EdgeInsets.all(16.0),
-          child: Column(
-            children: [
-              Center(
-                child: Column(
-                  children: <Widget>[
-                    SizedBox(height: screen.designH(100)),
-                    Stack(
-                      children: [
-                        SizedBox(
-                            width: screen.designW(400),
-                            height: screen.designH(400),
-                            child: _nurieImageBytes != null
-                                ? Image.memory(
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                Center(
+                  child: Column(
+                    children: <Widget>[
+                      SizedBox(height: screen.designH(100)),
+                      Stack(
+                        children: [
+                          _nurieImageBytes != null
+                              ? RotatedBox(
+                                  quarterTurns: isCamera ? 1 : 0,
+                                  child: Image.memory(
+                                    key: const Key('nurieImage'),
                                     _nurieImageBytes!,
                                     width: screen.designW(400),
                                     height: screen.designH(400),
                                     fit: BoxFit.contain,
-                                  )
-                                : const SizedBox()),
-                        FadeTransition(
-                          opacity: _animation,
-                          child: Container(
-                              child: _imageBytes != null
-                                  ? Image.memory(
-                                      _imageBytes!,
-                                      width: screen.designW(400),
-                                      height: screen.designH(400),
-                                      fit: BoxFit.contain,
-                                    )
-                                  // 画像を挿入する案内
-                                  : SizedBox(
-                                      width: screen.designW(400),
-                                      height: screen.designH(400),
-                                      child: const SelectImage())),
-                        )
-                      ],
-                    ),
-                    SizedBox(
-                      height: screen.designH(20),
-                    ),
-                    _imagePickButtonList(screen),
-                    SizedBox(
-                      height: screen.designH(20),
-                    ),
-                    MyButton(
-                      onPressed: _imageBytes != null
-                          ? () async {
-                              _imageConvert("image2NurieKernelSize5");
-                              _controller.forward();
-                            }
-                          : null,
-                      title: 'ぬりえにする',
-                    ),
-                    SizedBox(
-                      height: screen.designH(20),
-                    ),
-                    MyButton(
-                        onPressed: _nurieImageBytes != null
+                                  ),
+                                )
+                              : const SizedBox(),
+                          FadeTransition(
+                            opacity: _animation,
+                            child: SizedBox(
+                                width: screen.designW(400),
+                                height: screen.designH(400),
+                                child: _originalImageBytes != null
+                                    ? Image.memory(
+                                        key: const Key('originalImage'),
+                                        _originalImageBytes!,
+                                        fit: BoxFit.contain,
+                                      )
+                                    : SizedBox(
+                                        width: screen.designW(400),
+                                        height: screen.designH(400),
+                                        child: const DefaultImage())),
+                          )
+                        ],
+                      ),
+                      SizedBox(
+                        height: screen.designH(20),
+                      ),
+                      _imagePickButtonList(screen),
+                      SizedBox(
+                        height: screen.designH(20),
+                      ),
+                      nurieCompleted
+                          ? Column(
+                              children: [
+                                Center(
+                                    child: Text(
+                                  'せんのふとさ',
+                                  style: TextStyle(
+                                      fontSize:
+                                          sizeClass == ScreenSizeClass.phone
+                                              ? 24
+                                              : 48,
+                                      letterSpacing: 4),
+                                )),
+                                SizedBox(
+                                  height: screen.designH(10),
+                                ),
+                                _lineThicknessButtonList(screen, sizeClass)
+                              ],
+                            )
+                          : SaveOrConvertButton(
+                              onPressed:
+                                  _originalImageBytes == null || isProccessing
+                                      ? null
+                                      : () async {
+                                          _imageConvert(
+                                              "image2NurieKernelSize10",
+                                              _originalImageBytes!);
+                                          _controller.forward();
+                                        },
+                              title: 'ぬりえにする',
+                              color: Colors.redAccent,
+                            ),
+                      SizedBox(
+                        height: screen.designH(20),
+                      ),
+                      SaveOrConvertButton(
+                        onPressed: nurieCompleted
                             ? () {
                                 try {
                                   ImageGallerySaver.saveImage(
@@ -152,17 +206,19 @@ class HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                         content: Center(
                                   child: Text(
                                     'アルバムにほぞんしました',
-                                    style: TextStyle(
-                                        fontSize: 24, fontFamily: mainFont),
+                                    style: TextStyle(fontSize: 24),
                                   ),
                                 )));
                               }
                             : null,
-                        title: 'ほぞんする')
-                  ],
+                        title: 'ほぞんする',
+                        color: Colors.amber,
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -174,13 +230,68 @@ class HomePageState extends State<HomePage> with TickerProviderStateMixin {
       mainAxisAlignment: MainAxisAlignment.spaceAround,
       children: [
         ImagePickButton(
-            onPressed: () => _getImageFromDevice(ImageSource.camera),
+            onPressed: isProccessing
+                ? null
+                : () {
+                    _getImageFromDevice(ImageSource.camera);
+                  },
             title: "カメラ",
             icon: const Icon(Icons.camera_enhance)),
         ImagePickButton(
-            onPressed: () => _getImageFromDevice(ImageSource.gallery),
+            onPressed: isProccessing
+                ? null
+                : () {
+                    _getImageFromDevice(ImageSource.gallery);
+                  },
             title: "アルバム",
             icon: const Icon(Icons.photo_album))
+      ],
+    );
+  }
+
+  Widget _lineThicknessButtonList(Screen screen, ScreenSizeClass sizeClass) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: [
+        SizedBox(
+            width: screen.designW(100),
+            height: screen.designH(50),
+            child: LineThicknessButton(
+                onPressed: isProccessing
+                    ? null
+                    : () {
+                        isLineTicknessChanging = true;
+                        _imageConvert(
+                            'image2NurieKernelSize5', _originalImageBytes!);
+                      },
+                fontSize: sizeClass == ScreenSizeClass.phone ? 18 : 36,
+                title: 'ほそい')),
+        SizedBox(
+            width: screen.designW(100),
+            height: screen.designH(50),
+            child: LineThicknessButton(
+                onPressed: isProccessing
+                    ? null
+                    : () {
+                        isLineTicknessChanging = true;
+                        _imageConvert(
+                            'image2NurieKernelSize10', _originalImageBytes!);
+                      },
+                fontSize: sizeClass == ScreenSizeClass.phone ? 18 : 36,
+                title: 'ふつう')),
+        SizedBox(
+            width: screen.designW(100),
+            height: screen.designH(50),
+            child: LineThicknessButton(
+                onPressed: isProccessing
+                    ? null
+                    : () {
+                        isLineTicknessChanging = true;
+                        _imageConvert(
+                            'image2NurieKernelSize15', _originalImageBytes!);
+                      },
+                fontSize: sizeClass == ScreenSizeClass.phone ? 18 : 36,
+                title: 'ふとい')),
       ],
     );
   }

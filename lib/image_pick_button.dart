@@ -10,7 +10,7 @@ class ImagePickButton extends StatelessWidget {
       required this.icon,
       this.color = const Color(0xffff9500)});
 
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
   final String title;
   final Icon icon;
   final Color color;
@@ -18,20 +18,25 @@ class ImagePickButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final screen = ScreenRef(context).watch(screenProvider);
+    final sizeClass = screen.sizeClass;
 
     return SizedBox(
       width: screen.designW(160),
       height: screen.designH(60),
       child: ElevatedButton.icon(
         icon: icon,
+        style: ButtonStyle(
+            backgroundColor: MaterialStateProperty.all(color),
+            iconSize: MaterialStateProperty.all(
+                sizeClass == ScreenSizeClass.phone ? 24 : 48)),
         label: Text(
           title,
-          style: TextStyle(fontSize: 20, fontFamily: mainFont,letterSpacing: 4),
+          style: TextStyle(
+              fontSize: sizeClass == ScreenSizeClass.phone ? 20 : 40,
+              fontFamily: mainFont,
+              letterSpacing: 4),
         ),
         onPressed: onPressed,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: color,
-        ),
       ),
     );
   }
