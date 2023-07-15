@@ -43,6 +43,8 @@ dependencies:
   device_preview: ^1.1.0
   image: ^4.0.17
   image_size_getter: ^2.1.2
+  exif: ^3.1.4
+  flutter_launcher_icons: ^0.13.1
 
 
 
@@ -100,3 +102,7 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/custom-fonts/#from-packages
+flutter_icons:       
+  android: true
+  ios: true
+  image_path: "assets/app_icon.png"
