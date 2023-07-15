@@ -1,10 +1,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.nurie_3">
+    package="jp.keigo.nurieru">
     <uses-permission android:name="android.permission.CAMERA"/>
     <uses-feature android:name="android.hardware.camera" android:required="false"/>
     <uses-feature android:name="android.hardware.camera.autofocus" android:required="false"/>
    <application
-        android:label="nurie_3"
+        android:label="ぬりえる"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

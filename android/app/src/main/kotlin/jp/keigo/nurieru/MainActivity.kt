@@ -1,4 +1,4 @@
-package com.example.nurie_3
+package jp.keigo.nurieru
 
 import android.annotation.SuppressLint
 import android.content.Context
