@@ -1,16 +1,18 @@
 import 'dart:io';
 
+import 'package:exif/exif.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:nurie_3/line_thickness_button.dart';
+import 'package:nurie_3/constants.dart';
+import 'package:nurie_3/button_widget/line_thickness_button.dart';
 import 'package:nurie_3/default_image.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:image_gallery_saver/image_gallery_saver.dart';
-import 'package:nurie_3/image_pick_button.dart';
+import 'package:nurie_3/button_widget/image_pick_button.dart';
 import 'package:nurie_3/screen_pod.dart';
 import 'package:path_provider/path_provider.dart';
 
-import 'save_or_convert.dart';
+import 'button_widget/save_or_convert_button.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -22,7 +24,7 @@ class HomePage extends StatefulWidget {
 class HomePageState extends State<HomePage> with TickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _animation;
-  bool isCamera = false;
+  bool isRotated = false;
   bool nurieCompleted = false;
   bool isProccessing = false;
   bool isLineTicknessChanging = false;
@@ -54,13 +56,14 @@ class HomePageState extends State<HomePage> with TickerProviderStateMixin {
     _image = File(pickedFile.path);
     _originalImageBytes = await _image!.readAsBytes();
 
+    // Exif情報により画像が回転しているか調べて、回転していたらRotatedBoxで元に戻す
+    final tags = await readExifFromBytes(_originalImageBytes!);
+    isRotated =
+        tags["Image Orientation"].toString() == "Rotated 90 CW" ? true : false;
+        
     // FadeAnimationをリセット
     _controller.reset();
-
-    // カメラで撮影した画像だと変換後に回転してしまうので、
-    // isCameraによってRotatedBoxで回転させる
-    isCamera = source == ImageSource.camera ? true : false;
-
+    
     setState(() {
       nurieCompleted = false;
       _nurieImageBytes = null;
@@ -122,7 +125,8 @@ class HomePageState extends State<HomePage> with TickerProviderStateMixin {
                         children: [
                           _nurieImageBytes != null
                               ? RotatedBox(
-                                  quarterTurns: isCamera ? 1 : 0,
+                                  key: const Key('nurieImage'),
+                                  quarterTurns: isRotated ? 1 : 0,
                                   child: Image.memory(
                                     key: const Key('nurieImage'),
                                     _nurieImageBytes!,
@@ -144,6 +148,7 @@ class HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                         fit: BoxFit.contain,
                                       )
                                     : SizedBox(
+                                        key: const Key('beforeOriginalImage'),
                                         width: screen.designW(400),
                                         height: screen.designH(400),
                                         child: const DefaultImage())),
@@ -187,7 +192,7 @@ class HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                           _controller.forward();
                                         },
                               title: 'ぬりえにする',
-                              color: Colors.redAccent,
+                              color: imgConvertBtnColor,
                             ),
                       SizedBox(
                         height: screen.designH(20),
@@ -212,7 +217,7 @@ class HomePageState extends State<HomePage> with TickerProviderStateMixin {
                               }
                             : null,
                         title: 'ほぞんする',
-                        color: Colors.amber,
+                        color: imgSaveBtnColor,
                       ),
                     ],
                   ),
@@ -238,6 +243,7 @@ class HomePageState extends State<HomePage> with TickerProviderStateMixin {
             title: "カメラ",
             icon: const Icon(Icons.camera_enhance)),
         ImagePickButton(
+            key: const Key('albumPickButton'),
             onPressed: isProccessing
                 ? null
                 : () {
@@ -265,7 +271,7 @@ class HomePageState extends State<HomePage> with TickerProviderStateMixin {
                             'image2NurieKernelSize5', _originalImageBytes!);
                       },
                 fontSize: sizeClass == ScreenSizeClass.phone ? 18 : 36,
-                title: 'ほそい')),
+                title: 'ほそく')),
         SizedBox(
             width: screen.designW(100),
             height: screen.designH(50),
@@ -291,7 +297,7 @@ class HomePageState extends State<HomePage> with TickerProviderStateMixin {
                             'image2NurieKernelSize15', _originalImageBytes!);
                       },
                 fontSize: sizeClass == ScreenSizeClass.phone ? 18 : 36,
-                title: 'ふとい')),
+                title: 'ふとく')),
       ],
     );
   }
