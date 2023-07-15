@@ -1,16 +1,9 @@
-# nurie_3
+# nurie
 
-A new Flutter project.
+## 画像をぬりえ用に変換するアプリです。
 
-## Getting Started
+カメラやギャラリーから画像を取り込み、ボタンを押すだけでぬりえ用の画像に変換します。
 
-This project is a starting point for a Flutter application.
+以下のリンクからAndroid用のアプリをダウンロードできます。
 
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+https://drive.google.com/drive/folders/1jeTHZ6cW-JJ3Xzh8Bsl7Q_iatbW1vLc0?usp=drive_link
